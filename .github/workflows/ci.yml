@@ -39,11 +39,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: docker/login-action@v2
+      # --- проверка секретов перед логином ---
+      - name: Check Docker Hub secrets
+        run: |
+          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ] || [ -z "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+            echo "Error: Docker Hub secrets are missing!"
+            exit 1
+          else
+            echo "Docker Hub secrets found."
+          fi
+
+      # --- логин в Docker Hub ---
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # --- сборка и пуш Docker-образа ---
       - uses: docker/build-push-action@v5
         with:
           context: .
